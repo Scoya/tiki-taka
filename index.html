@@ -185,6 +185,19 @@ select.inp{background-image:linear-gradient(45deg,transparent 50%,#888 50%),line
 .lcard .inp{background:#fff}
 .form-msg{min-height:20px;font-size:13.5px;color:var(--ink2);line-height:1.5;margin:4px 2px 8px;font-weight:600}
 
+/* 알림 스위치 */
+.tgs{display:flex;flex-direction:column}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.tg:last-child{border-bottom:0}
+.tg span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.tg b{font-size:15px}
+.tg small{font-size:12.5px;color:var(--sub);font-weight:500}
+.tg input{position:absolute;opacity:0;pointer-events:none}
+.tg i{flex:none;width:50px;height:30px;border-radius:15px;background:#e2e2e2;position:relative;transition:background .2s}
+.tg i::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
+.tg input:checked+i{background:#22b35e}
+.tg input:checked+i::after{transform:translateX(20px)}
+
 /* FAB */
 .fab{position:fixed;right:max(18px,calc(50% - 262px));bottom:calc(var(--tab-h) + var(--safe-b) + 16px);z-index:30;width:58px;height:58px;border-radius:50%;
   background:var(--ink);color:#fff;display:grid;place-items:center;box-shadow:0 8px 20px rgba(0,0,0,.25)}
@@ -847,7 +860,10 @@ function renderMemo() {
 /* ---------- 설정 ---------- */
 function syncSectionHtml() {
   const head = '<h2 style="margin-top:6px">공유 연결</h2>';
-  if (!window.Sync || !Sync.configured()) return `${head}<div class="card set-card" style="padding-bottom:16px"><p class="note" style="margin:0">config.js에 Supabase 주소와 키를 넣으면 두 폰이 같은 데이터를 보게 돼요. 지금은 이 폰에만 저장돼요.</p></div>`;
+  if (!window.Sync || !Sync.configured()) {
+    const issue = window.Sync ? Sync.configIssue() : 'sync.js 파일을 읽지 못했어요. GitHub에 sync.js가 올라가 있는지 확인해 주세요.';
+    return `${head}<div class="card set-card" style="padding-bottom:16px"><p class="note" style="margin:0">지금은 이 폰에만 저장돼요.<br><b style="color:var(--red)">${esc(issue || 'Supabase 연결을 준비하지 못했어요.')}</b></p></div>`;
+  }
   if (!Sync.session) return `${head}<div class="card set-card" style="padding-bottom:16px">
     <p class="note" style="margin:0 0 12px">${Sync.isLinked() ? '로그인이 풀렸어요. 다시 로그인하면 이어서 동기화해요.' : '로그인하면 상대와 일정·디데이·메모·사진을 함께 볼 수 있어요.'}</p>
     <button class="btn primary block sm" data-act="sync-login">로그인 / 가입</button></div>`;
@@ -862,6 +878,35 @@ function syncSectionHtml() {
       <button class="btn ghost sm" data-act="copy-invite">복사</button></div>
     <p class="note" style="margin:8px 2px 12px">상대가 아직 연결하지 않았어요. 상대 폰에서 가입한 뒤 이 코드를 넣으면 연결돼요.</p>`}
     <div class="two"><button class="btn ghost sm" data-act="sync-now">지금 동기화</button><button class="btn ghost sm" data-act="sync-logout">로그아웃</button></div></div>`;
+}
+
+const HOUR_LABEL = h => `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}시`;
+function pushBoxHtml() {
+  const b = Push.blocker();
+  if (b) return `<p class="note" style="margin:0">${esc(b)}</p>`;
+  if (!Push.loaded) return '<p class="note" style="margin:0">알림 상태를 확인하는 중…</p>';
+  if (!Push.sub) return `<p class="note" style="margin:0 0 12px">이 폰에서 알림을 받으려면 켜 주세요. 알림 설정은 사람마다 따로 저장돼요.</p>
+    <button class="btn primary block sm" data-act="push-on">이 폰에서 알림 켜기</button>`;
+  const p = Push.prefs || Push.defaults();
+  const tg = (k, label, sub) => `<label class="tg"><span><b>${label}</b><small>${sub}</small></span><input type="checkbox" data-pref="${k}" ${p[k] ? 'checked' : ''}><i></i></label>`;
+  return `<div class="tgs">
+      ${tg('partner', '상대가 바꾸면 알림', '일정·디데이·메모·사진을 추가하거나 고쳤을 때')}
+      ${tg('anniv', '기념일·디데이 당일', '100일 단위, N주년, 직접 만든 디데이')}
+      ${tg('anniv_before', '미리 알림', '기념일·디데이 3일 전과 하루 전')}
+      ${tg('today', '오늘 일정 요약', '일정이 있는 날 아침에만')}
+    </div>
+    <div class="field" style="margin:14px 0 12px"><label>아침 알림 시각</label>
+      <select class="inp" id="push-hour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${p.hour === h ? 'selected' : ''}>${HOUR_LABEL(h)}</option>`).join('')}</select></div>
+    <div class="two"><button class="btn ghost sm" data-act="push-test">테스트 알림</button><button class="btn ghost sm" data-act="push-off">이 폰 알림 끄기</button></div>`;
+}
+function renderPushBox() { const el = document.getElementById('push-box'); if (el) el.innerHTML = pushBoxHtml(); }
+function pushAction(btn, label, fn) {
+  if (Push.busy) return;
+  Push.busy = true;
+  const old = btn.textContent; btn.textContent = label; btn.disabled = true;
+  Promise.resolve().then(fn)
+    .catch(e => toast(e && e.message && /[가-힣]/.test(e.message) ? e.message : '알림 설정을 하지 못했어요: ' + String(e && e.message || e).slice(0, 60)))
+    .finally(() => { Push.busy = false; btn.textContent = old; btn.disabled = false; renderPushBox(); });
 }
 
 let authBusy = false;
@@ -916,6 +961,7 @@ function renderSet() {
   const nameField = (w, label) => `<div class="field"><label>${label}</label><input class="inp" type="text" id="s-${w}" value="${esc(s[w])}" maxlength="10"></div>`;
   $('#view-set').innerHTML = `<div class="vhead"><div class="vt">설정</div></div>
     ${syncSectionHtml()}
+    ${window.Push && Sync.configured() ? `<h2>알림</h2><div class="card set-card" style="padding-bottom:16px" id="push-box">${pushBoxHtml()}</div>` : ''}
     <h2>우리 정보</h2>
     <div class="card set-card">
       <div class="two">${nameField(dev, '내 이름')}${nameField(other, '상대 이름')}</div>
@@ -939,6 +985,7 @@ function renderSet() {
     <h2>아이폰에 설치하기</h2>
     <p class="note" style="margin-top:0">사파리에서 이 페이지를 열고 하단 공유 버튼 → <b>홈 화면에 추가</b>를 누르면 앱처럼 쓸 수 있어요.</p>
     <div style="margin-top:28px"><button class="btn danger block" data-act="reset">모든 데이터 지우기</button></div>`;
+  if (window.Push && Sync.configured() && !Push.loaded && !Push.blocker()) Push.refresh().then(renderPushBox);
 }
 
 /* =========================================================
@@ -1284,6 +1331,17 @@ document.addEventListener('click', ev => {
     case 'ci-del': { const box = $('#citems'); el.closest('.ci').remove(); if (box && !box.children.length) addCiRow(false); break; }
     case 'close-sheet': closeSheet(); break;
     case 'sync-login': authSheet(); break;
+    case 'push-on':
+      // 권한 요청은 버튼을 누른 그 순간에 바로 해야 함 (await 없이 바로 호출)
+      pushAction(el, '켜는 중…', () => Push.enable().then(() => toast('알림을 켰어요. 테스트 알림을 보냈어요')));
+      break;
+    case 'push-off':
+      if (!confirm('이 폰에서 알림을 끌까요?')) break;
+      pushAction(el, '끄는 중…', () => Push.disable().then(() => toast('이 폰 알림을 껐어요')));
+      break;
+    case 'push-test':
+      pushAction(el, '보내는 중…', () => Sync.callFn({ type: 'test' }).then(r => toast(r && r.sent ? '테스트 알림을 보냈어요' : '보낼 폰을 찾지 못했어요. 알림을 다시 켜 주세요')));
+      break;
     case 'auth-signup': doAuth(true); break;
     case 'sync-link': linkSheet(); break;
     case 'link-create':
@@ -1300,7 +1358,11 @@ document.addEventListener('click', ev => {
     case 'sync-logout': {
       const n = Sync.pending();
       if (!confirm(n ? `아직 서버에 올라가지 않은 변경이 ${n}건 있어요.\n로그아웃하면 이 변경은 상대에게 전달되지 않아요. 로그아웃할까요?` : '로그아웃할까요? 데이터는 이 폰에 남아 있어요.')) break;
-      Sync.signOut();
+      // 이 폰 알림 등록을 먼저 지운 뒤 로그아웃 (다른 계정 알림이 오지 않게)
+      (window.Push && Push.sub ? Push.disable().catch(() => {}) : Promise.resolve()).then(() => {
+        if (window.Push) { Push.loaded = false; Push.prefs = null; Push.sub = null; }
+        Sync.signOut();
+      });
       break;
     }
     case 'copy-invite': {
@@ -1433,6 +1495,14 @@ document.addEventListener('change', ev => {
   if (t.name === 'who' && t.closest('#f-ev')) { const sw = $('#f-ev .sw.auto'); if (sw) sw.setAttribute('style', colorVars(whoColor(t.value))); }
   if (/^c-(me|you|us)$/.test(t.name) && PALETTE_MAP.has(t.value)) {
     D.settings.colors[t.name.slice(2)] = t.value; Store.save(D); toast('저장했어요');
+  }
+  if (t.dataset && t.dataset.pref && window.Push) {
+    const k = t.dataset.pref, v = t.checked;
+    Push.savePrefs({ [k]: v }).then(() => toast('저장했어요')).catch(() => { t.checked = !v; toast('저장하지 못했어요. 인터넷 연결을 확인해 주세요'); });
+  }
+  if (t.id === 'push-hour' && window.Push) {
+    const h = Math.max(0, Math.min(23, Number(t.value) || 0)), prev = (Push.prefs || Push.defaults()).hour;
+    Push.savePrefs({ hour: h }).then(() => toast(`매일 ${HOUR_LABEL(h)}에 알려 드릴게요`)).catch(() => { t.value = String(prev); toast('저장하지 못했어요. 인터넷 연결을 확인해 주세요'); });
   }
   if (t.name === 's-dev') { Device.set(t.value); toast('저장했어요'); }
   if (t.name === 'type' && t.closest('#f-memo')) {

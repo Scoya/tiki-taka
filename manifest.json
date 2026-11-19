@@ -1,0 +1,16 @@
+{
+  "name": "우리 디데이",
+  "short_name": "우리",
+  "description": "둘이 함께 쓰는 디데이 + 캘린더",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff8f6",
+  "theme_color": "#fff8f6",
+  "lang": "ko",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

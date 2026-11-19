@@ -17,6 +17,7 @@ const Sync = {
   sb: null, session: null, meta: null, channel: null,
   flushing: false, pulling: false, flushTimer: 0, retryTimer: 0,
   state: 'off', error: '', members: 0, lastOk: 0, dl: Promise.resolve(),
+  quiet: false, notifyQ: [], notifyTimer: 0,
 
   /* ---------- 기본 ---------- */
   configured() {
@@ -33,7 +34,7 @@ const Sync = {
     if (!window.supabase || !window.supabase.createClient) return 'vendor/supabase.js 파일을 읽지 못했어요. GitHub에 vendor 폴더가 올라가 있는지 확인해 주세요.';
     return '';
   },
-  emptyMeta() { return { coupleId: '', slot: 'me', invite: '', userId: '', lastPull: '', outbox: [], photoUp: [], photoDel: [], snap: {} }; },
+  emptyMeta() { return { coupleId: '', slot: 'me', invite: '', userId: '', lastPull: '', outbox: [], photoUp: [], photoDel: [], snap: {}, titles: {} }; },
   loadMeta() {
     let m = null;
     try { m = JSON.parse(localStorage.getItem(SYNC_KEY)); } catch (e) {}
@@ -46,7 +47,8 @@ const Sync = {
       outbox: arr(m.outbox).filter(o => o && isStr(o.id) && isStr(o.kind)),
       photoUp: arr(m.photoUp).filter(p => p && isStr(p.id) && isDate(p.date)),
       photoDel: arr(m.photoDel).filter(isStr),
-      snap: m.snap && typeof m.snap === 'object' ? m.snap : {}
+      snap: m.snap && typeof m.snap === 'object' ? m.snap : {},
+      titles: m.titles && typeof m.titles === 'object' ? m.titles : {}
     };
   },
   saveMeta() { try { localStorage.setItem(SYNC_KEY, JSON.stringify(this.meta)); } catch (e) {} },
@@ -93,7 +95,11 @@ const Sync = {
     });
     window.addEventListener('online', () => { this.flush(); this.pull(); });
     window.addEventListener('offline', () => this.setState(this.state));
-    document.addEventListener('visibilitychange', () => { if (!document.hidden && this.online()) { this.flush(); this.pull(); } });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { this.sendNotify(true); return; }
+      if (this.online()) { this.flush(); this.pull(); }
+    });
+    window.addEventListener('pagehide', () => this.sendNotify(true));
     if (this.session && this.isLinked()) {
       if (this.meta.userId && this.meta.userId !== this.session.user.id) { await this.signOut(true); return; }
       this.start();
@@ -174,10 +180,11 @@ const Sync = {
     Object.assign(this.meta, { coupleId: m.coupleId, slot: m.slot, invite: m.invite || '', userId: this.session.user.id });
     this.saveMeta();
 
+    this.quiet = true;   // 연결하면서 한꺼번에 올리는 건 상대에게 알리지 않음
     if (mode === 'create') {
       // 처음 만든 사람: 이 폰 데이터를 그대로 올림
       this.capture(D);
-      thumbs.forEach(t => this.meta.photoUp.push({ id: t.id, date: t.date, created: t.created || 0 }));
+      thumbs.forEach(t => this.meta.photoUp.push({ id: t.id, date: t.date, created: t.created || 0, quiet: true }));
       this.saveMeta();
     } else {
       const keep = hasLocal && confirm('이 폰에 있던 일정·디데이·메모·사진을 공유 데이터에 합칠까요?\n\n취소를 누르면 이 폰의 데이터는 지우고 공유 데이터로 바꿔요.');
@@ -193,12 +200,14 @@ const Sync = {
         local.ddays.forEach(x => { if (!has(D.ddays, x.id)) D.ddays.push(x); });
         local.memos.forEach(x => { if (!has(D.memos, x.id)) D.memos.push(x); });
         local.cats.forEach(c => { if (!D.memoCats.includes(c) && D.memoCats.length < 20) D.memoCats.push(c); });
-        thumbs.forEach(t => this.meta.photoUp.push({ id: t.id, date: t.date, created: t.created || 0 }));
+        thumbs.forEach(t => this.meta.photoUp.push({ id: t.id, date: t.date, created: t.created || 0, quiet: true }));
         Store.save(D);
       }
       computeMilestones();
     }
+    this.quiet = false;
     this.saveMeta();
+    if (window.Push) { Push.loaded = false; Push.prefs = null; }
     render();
     this.start();
   },
@@ -232,19 +241,33 @@ const Sync = {
     this.meta.outbox = this.meta.outbox.filter(o => o.id !== op.id);
     this.meta.outbox.push(op);
   },
+  titleOf(it) {
+    const d = it.data || {};
+    if (it.kind === 'memo') return cut(d.title, 40) || cut(String(d.text || '').split('\n')[0], 40) || (d.items && d.items[0] ? cut(d.items[0].t, 40) : '');
+    return cut(d.title, 40);
+  },
   capture(d) {
     if (!this.isLinked()) return;
+    if (!this.meta.titles) this.meta.titles = {};
     const seen = new Set();
     for (const it of this.itemsOf(d)) {
       seen.add(it.id);
       const sig = it.kind + ':' + fnv(JSON.stringify(it.data));
-      if (this.meta.snap[it.id] !== sig) { this.meta.snap[it.id] = sig; this.enqueue({ id: it.id, kind: it.kind, data: it.data, deleted: false }); }
+      if (this.meta.snap[it.id] !== sig) {
+        const act = this.meta.snap[it.id] ? 'edit' : 'add';
+        this.meta.snap[it.id] = sig;
+        const title = this.titleOf(it);
+        if (it.kind !== 'settings' && it.kind !== 'cats') this.meta.titles[it.id] = title;
+        this.enqueue({ id: it.id, kind: it.kind, data: it.data, deleted: false, act, title, quiet: this.quiet });
+      }
     }
     for (const id of Object.keys(this.meta.snap)) {
       if (seen.has(id)) continue;
       const kind = this.meta.snap[id].split(':')[0];
       delete this.meta.snap[id];
-      this.enqueue({ id, kind, data: {}, deleted: true });
+      const title = this.meta.titles[id] || '';
+      delete this.meta.titles[id];
+      this.enqueue({ id, kind, data: {}, deleted: true, act: 'del', title, quiet: this.quiet });
     }
     this.saveMeta();
     this.scheduleFlush();
@@ -258,7 +281,7 @@ const Sync = {
     if (!this.isLinked()) return;
     const queued = this.meta.photoUp.some(p => p.id === id);
     this.meta.photoUp = this.meta.photoUp.filter(p => p.id !== id);
-    if (!queued) { this.enqueue({ id, kind: 'photo', data: {}, deleted: true }); if (!this.meta.photoDel.includes(id)) this.meta.photoDel.push(id); }
+    if (!queued) { this.enqueue({ id, kind: 'photo', data: {}, deleted: true, act: 'del', title: '', quiet: false }); if (!this.meta.photoDel.includes(id)) this.meta.photoDel.push(id); }
     this.saveMeta(); this.scheduleFlush();
   },
   scheduleFlush() {
@@ -267,6 +290,36 @@ const Sync = {
     this.setState(this.state === 'error' ? 'error' : this.state);
   },
   retryLater() { clearTimeout(this.retryTimer); this.retryTimer = setTimeout(() => { this.flush(); this.pull(); }, 15000); },
+
+  /* ---------- 상대에게 변경 알림 (모아서 한 번에) ---------- */
+  queueNotify(o) {
+    if (!o || o.quiet || !['event', 'dday', 'memo', 'photo'].includes(o.kind) || !o.act) return;
+    const prev = this.notifyQ.find(x => x.id === o.id);
+    if (prev) {
+      if (prev.act === 'add' && o.act === 'del') this.notifyQ = this.notifyQ.filter(x => x !== prev);   // 추가했다가 바로 지움 → 알리지 않음
+      else { prev.act = prev.act === 'add' ? 'add' : o.act; prev.title = o.title || prev.title; }
+    }
+    else this.notifyQ.push({ id: o.id, kind: o.kind, act: o.act, title: o.title || '' });
+    clearTimeout(this.notifyTimer);
+    this.notifyTimer = setTimeout(() => this.sendNotify(false), 15000);
+  },
+  sendNotify(keepalive) {
+    clearTimeout(this.notifyTimer);
+    if (!this.notifyQ.length || !this.online()) return;
+    const changes = this.notifyQ.slice(0, 50).map(c => ({ kind: c.kind, act: c.act, title: c.title }));
+    this.notifyQ = [];
+    if (changes.length) this.callFn({ type: 'change', changes }, keepalive).catch(() => {});
+  },
+  fnUrl() { return String(window.COUPLE_CONFIG.supabaseUrl).trim().replace(/\/(rest|auth|storage|realtime)\/v1\/?.*$/i, '').replace(/\/+$/, '') + '/functions/v1/notify'; },
+  async callFn(body, keepalive) {
+    if (!this.sb) throw new Error('not configured');
+    const headers = { 'Content-Type': 'application/json', apikey: window.COUPLE_CONFIG.supabaseAnonKey.trim() };
+    if (this.session) headers.Authorization = 'Bearer ' + this.session.access_token;
+    const res = await fetch(this.fnUrl(), { method: 'POST', headers, body: JSON.stringify(body), keepalive: !!keepalive });
+    let data = null; try { data = await res.json(); } catch (e) {}
+    if (!res.ok) throw new Error((data && data.error) || ('function ' + res.status));
+    return data;
+  },
 
   /* ---------- 서버로 보내기 ---------- */
   path(id, thumb) { return `${this.meta.coupleId}/${id}${thumb ? '_t' : ''}.jpg`; },
@@ -284,7 +337,7 @@ const Sync = {
           if (r1.error) throw r1.error;
           const r2 = await st.upload(this.path(p.id, true), t.thumb, { upsert: true, contentType: 'image/jpeg', cacheControl: '31536000' });
           if (r2.error) throw r2.error;
-          if (this.meta.photoUp[0] && this.meta.photoUp[0].id === p.id) this.enqueue({ id: p.id, kind: 'photo', data: { date: p.date, created: p.created || 0 }, deleted: false });
+          if (this.meta.photoUp[0] && this.meta.photoUp[0].id === p.id) this.enqueue({ id: p.id, kind: 'photo', data: { date: p.date, created: p.created || 0 }, deleted: false, act: 'add', title: p.date, quiet: !!p.quiet });
         }
         this.meta.photoUp = this.meta.photoUp.filter(x => x.id !== p.id);
         this.saveMeta();
@@ -298,6 +351,7 @@ const Sync = {
         const sent = new Map(batch.map(o => [o.id, o.seq]));
         this.meta.outbox = this.meta.outbox.filter(o => sent.get(o.id) !== o.seq);
         this.saveMeta();
+        batch.forEach(o => this.queueNotify(o));
       }
       // 3) 지운 사진 파일 정리
       if (this.meta.photoDel.length) {
@@ -431,3 +485,100 @@ const Sync = {
   }
 };
 window.Sync = Sync;
+
+/* =========================================================
+   푸시 알림 (이 폰 등록 / 알림 설정)
+   ========================================================= */
+const VAPID_KEY = 'couple-vapid';
+const Push = {
+  sub: null, prefs: null, perm: 'default', loaded: false, busy: false,
+  supported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; },
+  standalone() { return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; },
+  isIOS() { return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); },
+  /* 알림을 켤 수 없는 이유 (없으면 '') */
+  blocker() {
+    if (!Sync.configured()) return 'Supabase 연결 설정이 필요해요.';
+    if (!Sync.session || !Sync.isLinked()) return '공유 연결을 먼저 마쳐 주세요.';
+    if (this.isIOS() && !this.standalone()) return '사파리 공유 버튼 → 홈 화면에 추가한 뒤, 홈 화면의 아이콘으로 열어야 알림을 켤 수 있어요.';
+    if (!this.supported()) return '이 브라우저는 알림을 지원하지 않아요.';
+    if (Notification.permission === 'denied') return this.isIOS() ? '알림이 꺼져 있어요. 아이폰 설정 → 알림 → 우리 에서 허용해 주세요.' : '브라우저에서 이 사이트 알림이 차단돼 있어요. 주소창 왼쪽 아이콘에서 허용해 주세요.';
+    return '';
+  },
+  cachedKey() { try { return localStorage.getItem(VAPID_KEY) || ''; } catch (e) { return ''; } },
+  async loadKey() {
+    const r = await Sync.callFn({ type: 'vapid' });
+    if (!r || !isStr(r.publicKey) || r.publicKey.length < 80) throw new Error('알림 서버(notify 함수)에 연결하지 못했어요');
+    try { localStorage.setItem(VAPID_KEY, r.publicKey); } catch (e) {}
+    return r.publicKey;
+  },
+  keyBytes(k) {
+    const s = k.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - k.length % 4) % 4);
+    const bin = atob(s); const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  },
+  async reg() {
+    return Promise.race([navigator.serviceWorker.ready, new Promise((_, rej) => setTimeout(() => rej(new Error('서비스워커 준비가 늦어요. 앱을 다시 열어 주세요')), 8000))]);
+  },
+  /* 설정 화면에 필요한 상태 읽기 */
+  async refresh() {
+    this.perm = this.supported() ? Notification.permission : 'unsupported';
+    if (this.blocker()) { this.loaded = true; return; }
+    try {
+      const reg = await this.reg();
+      this.sub = await reg.pushManager.getSubscription();
+      if (this.sub) {
+        await this.saveSub(this.sub);   // 서버 목록과 맞춰 둠 (다른 계정으로 바뀐 경우 등)
+        await this.loadPrefs();
+      }
+      if (!this.cachedKey()) this.loadKey().catch(() => {});
+    } catch (e) { /* 표시는 버튼에서 */ }
+    this.loaded = true;
+  },
+  async saveSub(sub) {
+    const j = sub.toJSON();
+    const { error } = await Sync.sb.rpc('save_push_sub', { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth });
+    if (error) throw error;
+  },
+  /* 알림 켜기: 버튼을 누른 직후 바로 권한부터 요청해야 아이폰에서 동작함 */
+  async enable() {
+    const perm = await Notification.requestPermission();
+    this.perm = perm;
+    if (perm !== 'granted') throw new Error(perm === 'denied' ? '알림이 거부됐어요' : '알림 허용이 필요해요');
+    const reg = await this.reg();
+    const key = this.cachedKey() || await this.loadKey();
+    let sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      // 서버 키가 바뀌었으면 다시 등록
+      const cur = sub.options && sub.options.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey) : null;
+      const want = this.keyBytes(key);
+      if (cur && (cur.length !== want.length || cur.some((b, i) => b !== want[i]))) { await sub.unsubscribe(); sub = null; }
+    }
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: this.keyBytes(key) });
+    await this.saveSub(sub);
+    this.sub = sub;
+    await this.loadPrefs();
+    await Sync.callFn({ type: 'test' }).catch(() => {});
+  },
+  async disable() {
+    if (this.sub) {
+      const ep = this.sub.endpoint;
+      try { await this.sub.unsubscribe(); } catch (e) {}
+      await Sync.sb.rpc('delete_push_sub', { p_endpoint: ep });
+    }
+    this.sub = null;
+  },
+  defaults() { return { partner: true, anniv: true, anniv_before: true, today: true, hour: 8 }; },
+  async loadPrefs() {
+    const { data, error } = await Sync.sb.from('push_prefs').select('partner,anniv,anniv_before,today,hour').eq('user_id', Sync.session.user.id).maybeSingle();
+    if (error) throw error;
+    this.prefs = { ...this.defaults(), ...(data || {}) };
+  },
+  async savePrefs(patch) {
+    const next = { ...(this.prefs || this.defaults()), ...patch };
+    const { error } = await Sync.sb.from('push_prefs').upsert({ user_id: Sync.session.user.id, ...next }, { onConflict: 'user_id' });
+    if (error) throw error;
+    this.prefs = next;
+  }
+};
+window.Push = Push;

@@ -23,6 +23,16 @@ const Sync = {
     const c = window.COUPLE_CONFIG || {};
     return !!(isStr(c.supabaseUrl) && /^https:\/\//.test(c.supabaseUrl) && isStr(c.supabaseAnonKey) && c.supabaseAnonKey.length > 20 && window.supabase && window.supabase.createClient);
   },
+  /* 설정이 안 될 때 원인 안내 */
+  configIssue() {
+    const c = window.COUPLE_CONFIG;
+    if (!c) return 'config.js 파일을 읽지 못했어요. GitHub에 config.js가 올라가 있는지 확인해 주세요.';
+    if (!isStr(c.supabaseUrl) || !c.supabaseUrl.trim() || !isStr(c.supabaseAnonKey) || !c.supabaseAnonKey.trim()) return 'config.js가 비어 있어요. GitHub에 올라간 config.js에 주소와 키가 들어 있는지 확인해 주세요.';
+    if (!/^https:\/\//.test(c.supabaseUrl.trim())) return 'config.js의 주소는 https:// 로 시작해야 해요.';
+    if (c.supabaseAnonKey.trim().length <= 20) return 'config.js의 키가 너무 짧아요. Publishable key 전체를 복사했는지 확인해 주세요.';
+    if (!window.supabase || !window.supabase.createClient) return 'vendor/supabase.js 파일을 읽지 못했어요. GitHub에 vendor 폴더가 올라가 있는지 확인해 주세요.';
+    return '';
+  },
   emptyMeta() { return { coupleId: '', slot: 'me', invite: '', userId: '', lastPull: '', outbox: [], photoUp: [], photoDel: [], snap: {} }; },
   loadMeta() {
     let m = null;
@@ -65,7 +75,9 @@ const Sync = {
     if (!this.configured()) { this.state = 'off'; return; }
     const c = window.COUPLE_CONFIG;
     try {
-      this.sb = window.supabase.createClient(c.supabaseUrl.trim(), c.supabaseAnonKey.trim(), {
+      // 주소 끝에 /rest/v1/ 이나 / 가 붙어 있어도 프로젝트 주소만 사용
+      const url = c.supabaseUrl.trim().replace(/\/(rest|auth|storage|realtime)\/v1\/?.*$/i, '').replace(/\/+$/, '');
+      this.sb = window.supabase.createClient(url, c.supabaseAnonKey.trim(), {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'couple-auth' }
       });
     } catch (e) { this.sb = null; this.state = 'off'; return; }

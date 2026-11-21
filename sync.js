@@ -111,6 +111,7 @@ const Sync = {
     this.flush();
     this.pull();
     this.countMembers();
+    if (window.Chat) Chat.start();
   },
 
   /* ---------- 로그인 ---------- */
@@ -218,6 +219,7 @@ const Sync = {
     this.session = null;
     this.meta = this.emptyMeta();
     this.saveMeta();
+    if (window.Chat) await Chat.reset();
     if (!silent) toast('로그아웃했어요. 데이터는 이 폰에 남아 있어요');
     if (typeof tab !== 'undefined') render();
   },
@@ -482,6 +484,7 @@ const Sync = {
   stopRealtime() {
     if (this.channel && this.sb) { try { this.sb.removeChannel(this.channel); } catch (e) {} }
     this.channel = null;
+    if (window.Chat) Chat.stop();
   }
 };
 window.Sync = Sync;
@@ -568,15 +571,22 @@ const Push = {
     }
     this.sub = null;
   },
-  defaults() { return { partner: true, anniv: true, anniv_before: true, today: true, hour: 8 }; },
+  hasChat: true,
+  defaults() { return { partner: true, anniv: true, anniv_before: true, today: true, chat: true, hour: 8 }; },
   async loadPrefs() {
-    const { data, error } = await Sync.sb.from('push_prefs').select('partner,anniv,anniv_before,today,hour').eq('user_id', Sync.session.user.id).maybeSingle();
+    let { data, error } = await Sync.sb.from('push_prefs').select('partner,anniv,anniv_before,today,chat,hour').eq('user_id', Sync.session.user.id).maybeSingle();
+    if (error && /chat/.test(String(error.message || ''))) {   // chat.sql 실행 전
+      this.hasChat = false;
+      ({ data, error } = await Sync.sb.from('push_prefs').select('partner,anniv,anniv_before,today,hour').eq('user_id', Sync.session.user.id).maybeSingle());
+    } else if (!error) this.hasChat = true;
     if (error) throw error;
     this.prefs = { ...this.defaults(), ...(data || {}) };
   },
   async savePrefs(patch) {
     const next = { ...(this.prefs || this.defaults()), ...patch };
-    const { error } = await Sync.sb.from('push_prefs').upsert({ user_id: Sync.session.user.id, ...next }, { onConflict: 'user_id' });
+    const row = { user_id: Sync.session.user.id, ...next };
+    if (!this.hasChat) delete row.chat;
+    const { error } = await Sync.sb.from('push_prefs').upsert(row, { onConflict: 'user_id' });
     if (error) throw error;
     this.prefs = next;
   }

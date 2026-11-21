@@ -1,10 +1,11 @@
 // 앱을 수정해서 올릴 때마다 이 버전 이름을 바꿔 주세요 (예: couple-v6)
-const CACHE = 'couple-v8';
+const CACHE = 'couple-v9';
 const ASSETS = [
   './',
   './index.html',
   './config.js',
   './sync.js',
+  './chat.js',
   './vendor/supabase.js',
   './manifest.json',
   './icons/icon-192.png',
@@ -51,7 +52,10 @@ self.addEventListener('push', (e) => {
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: '우리 디데이', body: e.data ? e.data.text() : '' }; }
   const opts = { body: d.body || '', icon: './icons/icon-192.png', badge: './icons/icon-192.png', data: { url: d.url || './' } };
   if (d.tag) opts.tag = d.tag;
-  e.waitUntil(self.registration.showNotification(d.title || '우리 디데이', opts));
+  const jobs = [self.registration.showNotification(d.title || '우리 디데이', opts)];
+  // 채팅 알림이면 앱 아이콘에 안 읽은 수 표시
+  if (Number.isFinite(d.badge) && self.navigator && self.navigator.setAppBadge) jobs.push(self.navigator.setAppBadge(d.badge).catch(() => {}));
+  e.waitUntil(Promise.all(jobs));
 });
 
 // 알림을 누르면 앱 열기
@@ -60,7 +64,10 @@ self.addEventListener('notificationclick', (e) => {
   const url = new URL((e.notification.data && e.notification.data.url) || './', self.registration.scope).href;
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      for (const c of list) { if ('focus' in c) return c.focus(); }
+      const toChat = url.includes('#chat');
+      for (const c of list) {
+        if ('focus' in c) { if (toChat) c.postMessage({ open: 'chat' }); return c.focus(); }
+      }
       return self.clients.openWindow(url);
     })
   );

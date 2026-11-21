@@ -198,6 +198,78 @@ select.inp{background-image:linear-gradient(45deg,transparent 50%,#888 50%),line
 .tg input:checked+i{background:#22b35e}
 .tg input:checked+i::after{transform:translateX(20px)}
 
+/* 채팅 */
+.tico{position:relative;display:block}
+.tbadge{position:absolute;top:-5px;left:15px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;box-shadow:0 0 0 2px #fff}
+.tbadge[hidden]{display:none}
+html.chatmode,html.chatmode body{overflow:hidden;height:100%;overscroll-behavior:none}
+#view-chat.active{position:fixed;left:0;right:0;top:0;bottom:calc(var(--tab-h) + var(--safe-b) + 1px);display:flex;justify-content:center;background:var(--bg);z-index:5}
+html.kb #view-chat.active{bottom:var(--kb,0px)}
+html.kb .tabbar{display:none}
+.chat-wrap{width:100%;max-width:560px;display:flex;flex-direction:column;height:100%;position:relative}
+.chat-head{flex:none;padding:calc(var(--safe-t) + 8px) 16px 6px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line)}
+.chat-head .vt{line-height:52px}
+.chat-sub{font-size:12px;color:var(--sub);font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-list{flex:1;overflow-y:auto;padding:6px 12px 14px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.chat-more{text-align:center;font-size:11.5px;color:var(--sub2);padding:8px 0}
+.chat-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--sub);gap:6px;padding:30px}
+.chat-empty b{color:var(--ink);font-size:17px}
+.chat-empty p{margin:0 0 12px;line-height:1.6;font-size:14px}
+.cday{text-align:center;margin:16px 0 8px}
+.cday span{display:inline-block;font-size:11.5px;color:var(--sub);background:#ececec;padding:4px 12px;border-radius:999px;font-weight:600}
+.cm{display:flex;align-items:flex-start;gap:7px;margin-top:3px}
+.cm.first{margin-top:10px}
+.cm.mine{justify-content:flex-end}
+.cm .av{width:30px;height:30px;font-size:12px;flex:none}
+.avsp{width:30px;flex:none}
+.cbox{display:flex;flex-direction:column;max-width:76%;min-width:0}
+.cm.mine .cbox{align-items:flex-end}
+.crow{display:flex;align-items:flex-end;gap:5px;min-width:0}
+.cm.mine .crow{flex-direction:row-reverse}
+.cbub{min-width:0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .15s}
+.cbub.pressed{transform:scale(.96)}
+.cmsg{padding:9px 13px;border-radius:18px;font-size:15px;line-height:1.45;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.cm.theirs .cmsg{background:#fff;color:var(--ink);border-top-left-radius:6px}
+.cm.mine .cmsg{background:var(--ink);color:#fff;border-top-right-radius:6px}
+.cm:not(.first) .cmsg{border-radius:18px}
+.cmsg a{color:inherit;text-decoration:underline}
+.cmsg.del{background:transparent!important;color:var(--sub)!important;border:1px dashed #d6d6d6;font-size:13.5px;font-style:italic}
+.cside{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:none;padding-bottom:1px}
+.cm.theirs .cside{align-items:flex-start}
+.ct{font-size:10.5px;color:var(--sub);white-space:nowrap}
+.c1{font-size:11px;font-weight:800;color:#f2b100}
+.cst{font-size:11px;opacity:.6}
+.cfail{width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-weight:900;font-size:13px}
+.cph{display:block;width:220px;max-width:62vw;border-radius:16px;overflow:hidden;background:#e9e9e9}
+.cph img{width:100%;height:100%;object-fit:cover;display:block}
+.cref{display:flex;align-items:center;gap:10px;width:240px;max-width:66vw;text-align:left;background:#fff;border:1px solid var(--line);border-radius:16px;padding:11px 12px;margin-top:4px}
+.cref .ri{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--cb);color:var(--c);font-size:18px;flex:none}
+.cref .rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cref small{font-size:11px;color:var(--sub);font-weight:700}
+.cref b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cref em{font-style:normal;font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cref .rg{font-size:12px;font-weight:700;color:var(--ink2);flex:none}
+.cref.gone{opacity:.55}
+div.cref.gone{display:block;color:var(--sub);font-size:13px}
+.cm.theirs .creact{align-self:flex-start}
+.cm.mine .creact{align-self:flex-end}
+.creact{display:inline-flex;gap:2px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:1px 6px;font-size:13px;margin-top:-4px;position:relative;z-index:1;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.chat-newpill{position:absolute;left:50%;transform:translateX(-50%);bottom:72px;background:var(--ink);color:#fff;font-size:13px;font-weight:700;padding:8px 14px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:3}
+.chat-newpill[hidden]{display:none}
+.chat-input{flex:none;display:flex;align-items:flex-end;gap:8px;padding:8px 10px;background:#fff;border-top:1px solid var(--line)}
+.chat-input[hidden]{display:none}
+.chat-input textarea{flex:1;min-width:0;resize:none;border:0;outline:none;background:var(--fill);border-radius:20px;padding:10px 14px;font-size:16px;line-height:1.35;max-height:120px;height:40px}
+.chat-plus,.chat-send{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none}
+.chat-plus{background:var(--fill)}
+.chat-plus svg,.chat-send svg{width:20px;height:20px}
+.chat-send{background:var(--ink);color:#fff}
+.chat-send:disabled{background:#d9d9d9}
+.react-row{display:flex;justify-content:space-between;gap:6px;background:var(--fill);border-radius:18px;padding:8px;margin-bottom:12px}
+.rbtn{flex:1;height:48px;border-radius:14px;font-size:26px;display:grid;place-items:center}
+.rbtn.on{background:#fff;box-shadow:inset 0 0 0 2px var(--ink)}
+.sheet-list{background:var(--fill)}
+.sheet-list .row{background:#fff}
+
 /* FAB */
 .fab{position:fixed;right:max(18px,calc(50% - 262px));bottom:calc(var(--tab-h) + var(--safe-b) + 16px);z-index:30;width:58px;height:58px;border-radius:50%;
   background:var(--ink);color:#fff;display:grid;place-items:center;box-shadow:0 8px 20px rgba(0,0,0,.25)}
@@ -291,6 +363,7 @@ select.inp{background-image:linear-gradient(45deg,transparent 50%,#888 50%),line
   <section id="view-home" class="view active"></section>
   <section id="view-cal" class="view"></section>
   <section id="view-memo" class="view"></section>
+  <section id="view-chat" class="view"></section>
   <section id="view-set" class="view"></section>
 </main>
 
@@ -303,6 +376,8 @@ select.inp{background-image:linear-gradient(45deg,transparent 50%,#888 50%),line
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>캘린더</button>
   <button data-tab="memo">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3.5H7a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V9.5z"/><path d="M14 3.5v6h6M8 13h8M8 17h5"/></svg>메모</button>
+  <button data-tab="chat">
+    <span class="tico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5c0 4.1-3.6 7.5-8 7.5-1.2 0-2.4-.2-3.4-.7L4 19.5l1.2-3.6C4.4 14.6 4 13.1 4 11.5 4 7.4 7.6 4 12 4s8 3.4 8 7.5z"/></svg><span class="tbadge" id="chat-badge" hidden>0</span></span>채팅</button>
   <button data-tab="set">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>설정</button>
 </div></nav>
@@ -317,6 +392,12 @@ select.inp{background-image:linear-gradient(45deg,transparent 50%,#888 50%),line
   <div class="panel"><div class="grab"></div><div id="picker-body"></div></div>
 </div>
 
+<div class="viewer" id="cviewer">
+  <div class="v-top"><button data-act="cv-close">닫기</button><span class="vlabel"></span><span style="width:56px"></span></div>
+  <div class="v-stage"><img id="cv-img" alt=""></div>
+  <div class="v-count">길게 눌러 사진을 저장할 수 있어요</div>
+</div>
+
 <div class="viewer" id="viewer">
   <div class="v-top"><button data-act="v-close">닫기</button><span class="vlabel" id="v-label"></span><button data-act="v-del">삭제</button></div>
   <div class="v-stage" id="v-stage"><img id="v-img" alt=""></div>
@@ -324,12 +405,14 @@ select.inp{background-image:linear-gradient(45deg,transparent 50%,#888 50%),line
 </div>
 
 <input type="file" id="photo-input" accept="image/*" multiple hidden>
+<input type="file" id="chat-photo-input" accept="image/*" multiple hidden>
 <input type="file" id="import-file" accept="application/json,.json" hidden>
 <div class="toast" id="toast"></div>
 
 <script src="config.js"></script>
 <script src="vendor/supabase.js"></script>
 <script src="sync.js"></script>
+<script src="chat.js"></script>
 <script>
 'use strict';
 /* =========================================================
@@ -649,13 +732,17 @@ function render() {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + tab));
   document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   const fab = $('#fab');
-  fab.hidden = tab === 'set';
+  fab.hidden = tab === 'set' || tab === 'chat';
+  document.documentElement.classList.toggle('chatmode', tab === 'chat');
+  if (tab !== 'chat') { document.documentElement.classList.remove('kb'); document.documentElement.style.setProperty('--kb', '0px'); }
   fab.innerHTML = tab === 'memo' ? ICONS.pen : ICONS.plus;
   fab.setAttribute('aria-label', tab === 'memo' ? '메모 쓰기' : tab === 'cal' ? '일정 추가' : '디데이 추가');
   if (tab === 'home') renderHome();
   if (tab === 'cal') renderCal();
   if (tab === 'memo') renderMemo();
   if (tab === 'set') renderSet();
+  if (tab === 'chat') renderChat(true);
+  if (window.Chat) { Chat.setVisible(); Chat.updateBadge(); }
 }
 
 function rowHtml(icon, kind, title, sub, n, attrs) {
@@ -894,6 +981,7 @@ function pushBoxHtml() {
       ${tg('anniv', '기념일·디데이 당일', '100일 단위, N주년, 직접 만든 디데이')}
       ${tg('anniv_before', '미리 알림', '기념일·디데이 3일 전과 하루 전')}
       ${tg('today', '오늘 일정 요약', '일정이 있는 날 아침에만')}
+      ${tg('chat', '채팅 메시지', '내가 채팅 화면을 보고 있지 않을 때')}
     </div>
     <div class="field" style="margin:14px 0 12px"><label>아침 알림 시각</label>
       <select class="inp" id="push-hour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${p.hour === h ? 'selected' : ''}>${HOUR_LABEL(h)}</option>`).join('')}</select></div>
@@ -1329,7 +1417,28 @@ document.addEventListener('click', ev => {
     }
     case 'ci-add': addCiRow(true); break;
     case 'ci-del': { const box = $('#citems'); el.closest('.ci').remove(); if (box && !box.children.length) addCiRow(false); break; }
-    case 'close-sheet': closeSheet(); break;
+    case 'close-sheet': if (Date.now() - chatMenuOpenedAt < 600) break; closeSheet(); break;
+    case 'chat-send': chatSendText(); $('#chat-text').focus(); break;
+    case 'chat-plus': chatPlusMenu(); break;
+    case 'chat-bottom': chatToBottom(); break;
+    case 'chat-pick-photo': closeSheet(); $('#chat-photo-input').click(); break;
+    case 'chat-pick-ref': chatRefPicker(el.dataset.kind); break;
+    case 'chat-send-ref': chatSendRef(el.dataset.kind, id); break;
+    case 'chat-openref': if (!el.closest('#sheet') && Date.now() - chatMenuOpenedAt < 600) break; chatOpenRef(id); break;
+    case 'chat-photo': if (!el.closest('#sheet') && Date.now() - chatMenuOpenedAt < 600) break; if (sheetOpen()) closeSheet(); chatViewPhoto(id); break;
+    case 'chat-retry': if (sheetOpen()) closeSheet(); Chat.retry(id); break;
+    case 'chat-react': closeSheet(); Chat.react(id, el.dataset.e); break;
+    case 'chat-copy': {
+      const m = Chat.msgs.get(id); closeSheet();
+      if (m && navigator.clipboard) navigator.clipboard.writeText(m.body).then(() => toast('복사했어요'), () => toast('복사하지 못했어요'));
+      break;
+    }
+    case 'chat-del': {
+      const m = Chat.msgs.get(id); closeSheet();
+      if (m && confirm(m.status === 'sent' ? '이 메시지를 삭제할까요? 상대 화면에서도 지워져요.' : '보내기를 취소할까요?')) Chat.remove(id);
+      break;
+    }
+    case 'cv-close': closeChatViewer(); break;
     case 'sync-login': authSheet(); break;
     case 'push-on':
       // 권한 요청은 버튼을 누른 그 순간에 바로 해야 함 (await 없이 바로 호출)
@@ -1480,7 +1589,7 @@ document.addEventListener('keydown', ev => {
     if (row === row.parentElement.lastElementChild) addCiRow(true);
     else row.nextElementSibling.querySelector('input[type=text]').focus();
   }
-  if (ev.key === 'Escape') { if (pickerOpen()) closePicker(); else if ($('#viewer').classList.contains('open')) closeViewer(); else if (sheetOpen()) closeSheet(); }
+  if (ev.key === 'Escape') { if (pickerOpen()) closePicker(); else if ($('#cviewer').classList.contains('open')) closeChatViewer(); else if ($('#viewer').classList.contains('open')) closeViewer(); else if (sheetOpen()) closeSheet(); }
 });
 
 document.addEventListener('change', ev => {
@@ -1518,6 +1627,7 @@ document.addEventListener('change', ev => {
       if (!ta.value.trim()) ta.value = Array.from(document.querySelectorAll('#citems input[type=text]')).map(i => i.value.trim()).filter(Boolean).join('\n');
     }
   }
+  if (t.id === 'chat-photo-input') { const files = t.files; if (files && files.length) chatSendPhotos(files).finally(() => { t.value = ''; }); }
   if (t.id === 'photo-input') { const files = t.files; if (files && files.length) addPhotos(files, selDate).finally(() => { t.value = ''; }); }
   if (t.id === 'import-file') { const f = t.files && t.files[0]; t.value = ''; if (f) importData(f); }
 });
@@ -1554,12 +1664,287 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && !s
 /* 다른 탭에서 데이터가 바뀌면 반영 */
 window.addEventListener('storage', e => { if (e.key === DATA_KEY && !sheetOpen()) { D = Store.load(); computeMilestones(); render(); } });
 
+
+/* =========================================================
+   채팅 화면
+   ========================================================= */
+let chatScrollPin = true;
+const CHAT_DAY = s => { const d = new Date(s); return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${WD[d.getDay()]}요일`; };
+const chatTime = m => { const d = new Date(m.created_at || m.client_ts); const h = d.getHours(); return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${pad(d.getMinutes())}`; };
+const chatDayKey = m => { const d = new Date(m.created_at || m.client_ts); return ymd(d); };
+const chatMinKey = m => { const d = new Date(m.created_at || m.client_ts); return `${ymd(d)} ${d.getHours()}:${d.getMinutes()}`; };
+function linkify(t) {
+  return esc(t).replace(/(https?:\/\/[^\s<>"']+[^\s<>"'.,!?)\]])/g, u => `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`);
+}
+function chatSubHtml() {
+  if (!Chat.usable()) return '';
+  return Chat.partnerVisible ? `<span class="dot ok"></span>${esc(whoName(Chat.partnerSlot()))}님이 채팅을 보고 있어요` : '';
+}
+
+/* 공유한 일정·메모·디데이 카드 */
+function refInfo(ref) {
+  if (!ref || !ref.kind) return null;
+  if (ref.kind === 'event') {
+    const e = D.events.find(x => x.id === ref.id);
+    const src = e || ref;
+    if (!isDate(src.date)) return null;
+    const range = src.end && isDate(src.end) ? `${fmtDay(src.date)} ~ ${fmtDay(src.end)}` : fmtDay(src.date);
+    return { icon: HEART, style: e ? colorVars(evColor(e)) : '--c:#9a9a9a;--cb:#f2f2f2', title: src.title || '일정', sub: [range, fmtTime(src.time)].filter(Boolean).join(' · '), alive: !!e, label: '일정' };
+  }
+  if (ref.kind === 'memo') {
+    const m = D.memos.find(x => x.id === ref.id);
+    const title = m ? (m.title || (m.text || '').split('\n')[0] || (m.items[0] && m.items[0].t) || '메모') : ref.title || '메모';
+    const sub = m ? (m.type === 'check' ? `체크리스트 ${m.items.filter(i => i.done).length}/${m.items.length}` : (m.cat || '메모')) : (ref.sub || '메모');
+    return { icon: '📝', style: '--c:#444;--cb:#f2f2f2', title, sub, alive: !!m, label: '메모' };
+  }
+  if (ref.kind === 'dday') {
+    const d = D.ddays.find(x => x.id === ref.id);
+    const src = d || ref;
+    if (!isDate(src.date)) return null;
+    const next = d ? ddayNext(d) : parse(src.date);
+    return { icon: esc(src.emoji || '📌'), style: '--c:#8a5200;--cb:#fff1dc', title: src.title || '디데이', sub: `${fmt(next)} · ${ddText(diffDays(today(), next))}`, alive: !!d, label: '디데이' };
+  }
+  return null;
+}
+function refCardHtml(m) {
+  const r = refInfo(m.ref);
+  if (!r) return '<div class="cref gone">삭제된 항목이에요</div>';
+  return `<button class="cref${r.alive ? '' : ' gone'}" data-act="chat-openref" data-id="${esc(m.id)}">
+    <span class="ri" style="${r.style}">${r.icon}</span>
+    <span class="rt"><small>${r.label} 공유</small><b>${esc(r.title)}</b><em>${esc(r.sub)}</em></span>
+    <span class="rg">${r.alive ? '보기 ›' : '삭제됨'}</span></button>`;
+}
+
+function chatMsgHtml(m, prev, next) {
+  const mine = m.slot === Chat.mySlot();
+  const newDay = !prev || chatDayKey(prev) !== chatDayKey(m);
+  const firstInGroup = newDay || !prev || prev.slot !== m.slot || chatMinKey(prev) !== chatMinKey(m);
+  const lastInGroup = !next || next.slot !== m.slot || chatMinKey(next) !== chatMinKey(m) || chatDayKey(next) !== chatDayKey(m);
+  let html = newDay ? `<div class="cday"><span>${CHAT_DAY(m.created_at || m.client_ts)}</span></div>` : '';
+  let content;
+  if (m.deleted) content = `<div class="cmsg del">삭제된 메시지예요</div>`;
+  else if (m.type === 'photo') {
+    const w = Math.max(1, Number(m.ref && m.ref.w) || 4), h = Math.max(1, Number(m.ref && m.ref.h) || 3);
+    const ratio = Math.min(2, Math.max(0.5, w / h));
+    const u = Chat.urls.get(m.id + '_t');
+    content = `<button class="cph" style="aspect-ratio:${ratio}" data-act="chat-photo" data-id="${esc(m.id)}"><img data-pk="${esc(m.id)}_t" alt="" ${u ? `src="${u}"` : ''}></button>`;
+  } else if (m.type === 'ref') content = (m.body ? `<div class="cmsg">${linkify(m.body)}</div>` : '') + refCardHtml(m);
+  else content = `<div class="cmsg">${linkify(m.body)}</div>`;
+  let side = '';
+  if (mine) {
+    if (m.status === 'pending') side = '<span class="cst">⏱</span>';
+    else if (m.status === 'failed') side = `<button class="cfail" data-act="chat-retry" data-id="${esc(m.id)}" aria-label="다시 보내기">!</button>`;
+    else if (!m.deleted && m.created_at > (Chat.meta.partnerRead || '')) side = '<span class="c1">1</span>';
+  }
+  const time = lastInGroup || m.status !== 'sent' ? `<span class="ct">${m.status === 'sent' ? chatTime(m) : ''}</span>` : '';
+  const reacts = !m.deleted && m.reactions ? Object.entries(m.reactions).filter(([k, v]) => (k === 'me' || k === 'you') && CHAT_EMOJIS.includes(v)) : [];
+  const reactHtml = reacts.length ? `<div class="creact">${reacts.map(([k, v]) => `<span title="${esc(whoName(k))}">${v}</span>`).join('')}</div>` : '';
+  const av = !mine ? (firstInGroup ? avatar(m.slot) : '<span class="avsp"></span>') : '';
+  html += `<div class="cm ${mine ? 'mine' : 'theirs'}${firstInGroup ? ' first' : ''}" data-mid="${esc(m.id)}">
+    ${av}<div class="cbox"><div class="crow"><div class="cbub" data-mid="${esc(m.id)}">${content}</div><div class="cside">${side}${time}</div></div>${reactHtml}</div></div>`;
+  return html;
+}
+
+function buildChatShell() {
+  $('#view-chat').innerHTML = `<div class="chat-wrap">
+    <div class="chat-head"><div class="vt">채팅</div><div class="chat-sub" id="chat-sub"></div></div>
+    <div class="chat-list" id="chat-list"></div>
+    <button class="chat-newpill" id="chat-newpill" data-act="chat-bottom" hidden>새 메시지 ↓</button>
+    <div class="chat-input" id="chat-input">
+      <button class="chat-plus" data-act="chat-plus" aria-label="사진·일정·메모 보내기">${ICONS.plus}</button>
+      <textarea id="chat-text" rows="1" maxlength="2000" placeholder="메시지 입력" enterkeyhint="send"></textarea>
+      <button class="chat-send" data-act="chat-send" aria-label="보내기" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+    </div></div>`;
+  const list = $('#chat-list');
+  list.addEventListener('scroll', () => {
+    chatScrollPin = list.scrollHeight - list.scrollTop - list.clientHeight < 120;
+    if (chatScrollPin) $('#chat-newpill').hidden = true;
+    if (list.scrollTop < 60) chatLoadOlder();
+  }, { passive: true });
+  const ta = $('#chat-text');
+  ta.addEventListener('input', () => {
+    ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+    $('#chat-input .chat-send').disabled = !ta.value.trim();
+  });
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && window.matchMedia && matchMedia('(pointer:fine)').matches) { e.preventDefault(); chatSendText(); }
+  });
+  ta.addEventListener('focus', () => { document.documentElement.classList.add('kb'); setTimeout(() => { fitKeyboard(); chatToBottom(); }, 300); });
+  ta.addEventListener('blur', () => { setTimeout(() => { if (document.activeElement !== ta) { document.documentElement.classList.remove('kb'); document.documentElement.style.setProperty('--kb', '0px'); } }, 100); });
+  bindLongPress(list);
+  Chat.built = true;
+}
+
+function renderChat(forceBottom) {
+  if (!Chat.built) buildChatShell();
+  const list = $('#chat-list'), input = $('#chat-input');
+  if (!Chat.usable()) {
+    list.innerHTML = `<div class="chat-empty"><b>둘만의 채팅</b><p>설정에서 공유 연결을 마치면<br>여기서 대화할 수 있어요.</p><button class="btn primary sm" data-act="go-set">설정으로 가기</button></div>`;
+    input.hidden = true; $('#chat-sub').innerHTML = ''; return;
+  }
+  input.hidden = false;
+  $('#chat-sub').innerHTML = chatSubHtml();
+  const all = Chat.list();
+  if (!Chat.ready) { list.innerHTML = '<div class="chat-empty"><p>불러오는 중…</p></div>'; return; }
+  if (!all.length) { list.innerHTML = `<div class="chat-empty"><b>${esc(whoName(Chat.partnerSlot()))}님과의 채팅</b><p>첫 메시지를 보내 보세요 ${HEART}</p></div>`; return; }
+  const slice = all.slice(-Chat.showCount);
+  const wasPinned = chatScrollPin;
+  const prevH = list.scrollHeight, prevTop = list.scrollTop;
+  const grew = all.length > Chat.lastCount, lastMsg = all[all.length - 1];
+  let html = Chat.showCount < all.length || !Chat.noMoreServer ? '<div class="chat-more">위로 올리면 이전 대화를 불러와요</div>' : '';
+  slice.forEach((m, i) => { html += chatMsgHtml(m, slice[i - 1] || (i === 0 ? all[all.length - slice.length - 1] : null), slice[i + 1]); });
+  list.innerHTML = html;
+  if (forceBottom || wasPinned) chatToBottom();
+  else if (list.dataset.prepend === '1') { list.scrollTop = prevTop + (list.scrollHeight - prevH); list.dataset.prepend = ''; }
+  else { list.scrollTop = prevTop; if (grew && lastMsg && lastMsg.slot !== Chat.mySlot()) $('#chat-newpill').hidden = false; }
+  Chat.lastCount = all.length;
+  Chat.hydrate();
+}
+function chatToBottom() { const l = $('#chat-list'); if (l) { l.scrollTop = l.scrollHeight; chatScrollPin = true; const p = $('#chat-newpill'); if (p) p.hidden = true; } }
+async function chatLoadOlder() {
+  const all = Chat.list();
+  if (Chat.showCount < all.length) { Chat.showCount += CHAT_PAGE; $('#chat-list').dataset.prepend = '1'; renderChat(); return; }
+  if (await Chat.loadOlder()) { Chat.showCount += CHAT_PAGE; $('#chat-list').dataset.prepend = '1'; renderChat(); }
+}
+function chatSendText() {
+  const ta = $('#chat-text'), t = ta.value.replace(/\s+$/, '');
+  if (!t.trim()) return;
+  ta.value = ''; ta.style.height = 'auto'; $('#chat-input .chat-send').disabled = true;
+  Chat.send('text', t);
+}
+
+/* 아이폰 키보드가 올라오면 입력창을 키보드 위로 */
+function fitKeyboard() {
+  const vv = window.visualViewport;
+  if (!vv || !document.documentElement.classList.contains('kb')) return;
+  const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  document.documentElement.style.setProperty('--kb', kb + 'px');
+}
+if (window.visualViewport) { visualViewport.addEventListener('resize', fitKeyboard); visualViewport.addEventListener('scroll', fitKeyboard); }
+
+/* 메시지를 길게 누르면 반응·복사·삭제 */
+function bindLongPress(list) {
+  let timer = 0, sx = 0, sy = 0;
+  const cancel = () => { clearTimeout(timer); timer = 0; };
+  list.addEventListener('pointerdown', e => {
+    const b = e.target.closest('.cbub'); if (!b) return;
+    sx = e.clientX; sy = e.clientY; cancel();
+    timer = setTimeout(() => { timer = 0; b.classList.add('pressed'); setTimeout(() => b.classList.remove('pressed'), 200); chatMsgMenu(b.dataset.mid); }, 450);
+  });
+  list.addEventListener('pointermove', e => { if (timer && (Math.abs(e.clientX - sx) > 8 || Math.abs(e.clientY - sy) > 8)) cancel(); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => list.addEventListener(t, cancel));
+  list.addEventListener('contextmenu', e => { const b = e.target.closest('.cbub'); if (b) { e.preventDefault(); cancel(); chatMsgMenu(b.dataset.mid); } });
+}
+let chatMenuOpenedAt = 0;
+function chatMsgMenu(id) {
+  const m = Chat.msgs.get(id); if (!m) return;
+  chatMenuOpenedAt = Date.now();
+  const mine = m.slot === Chat.mySlot(), my = (m.reactions || {})[Chat.mySlot()] || '';
+  const canReact = m.status === 'sent' && !m.deleted;
+  const rows = [];
+  if (m.type === 'text' && !m.deleted) rows.push(`<button class="row" data-act="chat-copy" data-id="${esc(id)}"><div class="ico">📋</div><div class="txt"><div class="t">복사</div></div></button>`);
+  if (m.type === 'ref' && !m.deleted) rows.push(`<button class="row" data-act="chat-openref" data-id="${esc(id)}"><div class="ico">↗</div><div class="txt"><div class="t">항목 보기</div></div></button>`);
+  if (m.type === 'photo' && !m.deleted) rows.push(`<button class="row" data-act="chat-photo" data-id="${esc(id)}"><div class="ico">🖼</div><div class="txt"><div class="t">크게 보기</div></div></button>`);
+  if (m.status === 'failed') rows.push(`<button class="row" data-act="chat-retry" data-id="${esc(id)}"><div class="ico">↻</div><div class="txt"><div class="t">다시 보내기</div></div></button>`);
+  if (mine && !m.deleted) rows.push(`<button class="row" data-act="chat-del" data-id="${esc(id)}"><div class="ico" style="color:var(--red)">🗑</div><div class="txt"><div class="t" style="color:var(--red)">${m.status === 'sent' ? '삭제' : '보내기 취소'}</div></div></button>`);
+  openSheet(`${canReact ? `<div class="react-row">${CHAT_EMOJIS.map(e => `<button class="rbtn${my === e ? ' on' : ''}" data-act="chat-react" data-id="${esc(id)}" data-e="${e}">${e}</button>`).join('')}</div>` : ''}
+    ${rows.length ? `<div class="card list sheet-list">${rows.join('')}</div>` : ''}
+    <button class="btn ghost block" style="margin-top:10px" data-act="close-sheet">닫기</button>`);
+}
+
+/* ＋ 메뉴: 사진 / 일정 / 메모 / 디데이 공유 */
+function chatPlusMenu() {
+  openSheet(`<h3>보내기</h3><div class="card list sheet-list">
+    <button class="row" data-act="chat-pick-photo"><div class="ico">🖼</div><div class="txt"><div class="t">사진</div><div class="s">최대 10장</div></div></button>
+    <button class="row" data-act="chat-pick-ref" data-kind="event"><div class="ico">${HEART}</div><div class="txt"><div class="t">일정 공유</div></div></button>
+    <button class="row" data-act="chat-pick-ref" data-kind="memo"><div class="ico">📝</div><div class="txt"><div class="t">메모 공유</div></div></button>
+    <button class="row" data-act="chat-pick-ref" data-kind="dday"><div class="ico">📌</div><div class="txt"><div class="t">디데이 공유</div></div></button>
+  </div>`);
+}
+function chatRefPicker(kind) {
+  const t = ymd(today());
+  let items = [];
+  if (kind === 'event') {
+    const up = D.events.filter(e => (e.end || e.date) >= t).sort((a, b) => a.date.localeCompare(b.date) || byTime(a, b));
+    const past = D.events.filter(e => (e.end || e.date) < t).sort((a, b) => b.date.localeCompare(a.date));
+    items = [...up, ...past].slice(0, 60).map(e => ({ id: e.id, icon: HEART, style: colorVars(evColor(e)), title: e.title, sub: [e.end ? `${fmtDay(e.date)} ~ ${fmtDay(e.end)}` : fmtDay(e.date), fmtTime(e.time)].filter(Boolean).join(' · ') }));
+  } else if (kind === 'memo') {
+    items = [...D.memos].sort((a, b) => b.updated - a.updated).slice(0, 60).map(m => ({ id: m.id, icon: '📝', style: '', title: m.title || (m.text || '').split('\n')[0] || (m.items[0] && m.items[0].t) || '메모', sub: m.cat || (m.type === 'check' ? '체크리스트' : '메모') }));
+  } else {
+    items = D.ddays.map(d => ({ d, n: ddayNext(d) })).sort((a, b) => a.n - b.n).map(({ d, n }) => ({ id: d.id, icon: esc(d.emoji), style: '', title: d.title, sub: `${fmt(n)} · ${ddText(diffDays(today(), n))}` }));
+  }
+  const label = { event: '일정', memo: '메모', dday: '디데이' }[kind];
+  openSheet(`<h3>${label} 공유</h3>${items.length ? `<div class="card list sheet-list">${items.map(x => `<button class="row" data-act="chat-send-ref" data-kind="${kind}" data-id="${esc(x.id)}"><div class="ico" style="${x.style}">${x.icon}</div><div class="txt"><div class="t">${esc(x.title)}</div><div class="s">${esc(x.sub)}</div></div></button>`).join('')}</div>` : `<div class="empty-msg">공유할 ${label}이(가) 없어요</div>`}`);
+}
+function chatSendRef(kind, id) {
+  let ref = null;
+  if (kind === 'event') { const e = D.events.find(x => x.id === id); if (e) ref = { kind, id, title: e.title, date: e.date, end: e.end, time: e.time }; }
+  if (kind === 'memo') { const m = D.memos.find(x => x.id === id); if (m) ref = { kind, id, title: m.title || (m.text || '').split('\n')[0].slice(0, 40) || (m.items[0] && m.items[0].t) || '메모', sub: m.cat || '' }; }
+  if (kind === 'dday') { const d = D.ddays.find(x => x.id === id); if (d) ref = { kind, id, title: d.title, date: d.date, emoji: d.emoji, repeat: d.repeat }; }
+  if (!ref) { toast('항목을 찾지 못했어요'); return; }
+  closeSheet();
+  Chat.send('ref', '', ref);
+}
+function chatOpenRef(id) {
+  const m = Chat.msgs.get(id); if (!m || !m.ref) return;
+  const r = m.ref;
+  if (r.kind === 'event') {
+    const e = D.events.find(x => x.id === r.id); if (!e) { toast('삭제된 일정이에요'); return; }
+    if (sheetOpen()) closeSheet();
+    tab = 'cal'; selDate = e.date; const d = parse(e.date); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); render(); window.scrollTo(0, 0);
+    setTimeout(() => evForm(e), 250);
+  } else if (r.kind === 'memo') {
+    const x = D.memos.find(y => y.id === r.id); if (!x) { toast('삭제된 메모예요'); return; }
+    if (sheetOpen()) closeSheet();
+    tab = 'memo'; memoFilter = ''; render(); setTimeout(() => memoForm(x), 250);
+  } else if (r.kind === 'dday') {
+    const x = D.ddays.find(y => y.id === r.id); if (!x) { toast('삭제된 디데이예요'); return; }
+    if (sheetOpen()) closeSheet();
+    tab = 'home'; render(); setTimeout(() => ddForm(x), 250);
+  }
+  Chat.setVisible();
+}
+async function chatSendPhotos(files) {
+  const list = Array.from(files || []).filter(f => f && (!f.type || f.type.startsWith('image/'))).slice(0, 10);
+  if (!list.length) return;
+  toast('사진 준비 중…', 30000);
+  let fail = 0;
+  for (const f of list) {
+    let loaded = null;
+    try {
+      loaded = await loadImage(f);
+      const full = await resizeTo(loaded.img, 1600, 0.85);
+      const thumb = await resizeTo(loaded.img, 600, 0.8);
+      await Chat.send('photo', '', { w: loaded.img.naturalWidth, h: loaded.img.naturalHeight }, { full, thumb });
+    } catch (e) { fail++; }
+    finally { if (loaded) URL.revokeObjectURL(loaded.url); }
+  }
+  toast(fail ? `사진 ${list.length - fail}장 보냄, ${fail}장 실패` : `사진 ${list.length}장을 보냈어요`);
+}
+async function chatViewPhoto(id) {
+  const box = $('#cviewer'), img = $('#cv-img');
+  img.removeAttribute('src');
+  box.classList.add('open'); document.documentElement.classList.add('lock');
+  const t = await Chat.photoURL(id, 't'); if (t && box.classList.contains('open') && !img.src) img.src = t;
+  const f = await Chat.photoURL(id, 'f'); if (f && box.classList.contains('open')) img.src = f;
+  else if (!f && !t) toast('사진을 불러오지 못했어요');
+}
+function closeChatViewer() { $('#cviewer').classList.remove('open'); $('#cv-img').removeAttribute('src'); if (!sheetOpen()) document.documentElement.classList.remove('lock'); }
+
+/* 알림을 눌러 열었거나 주소에 #chat 이 있으면 채팅 탭으로 */
+if (location.hash === '#chat') { tab = 'chat'; try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => {
+  if (e.data && e.data.open === 'chat') { if (sheetOpen()) closeSheet(); tab = 'chat'; render(); }
+});
+
 computeMilestones();
 render();
 loadPhotos()
   .then(() => { if (tab === 'cal') renderCal(); return window.Sync ? Sync.init() : null; })
   .catch(() => {})
-  .then(() => { if (tab === 'set' && !sheetOpen()) renderSet(); });
+  .then(() => { if (tab === 'set' && !sheetOpen()) renderSet(); return window.Chat ? Chat.init() : null; })
+  .catch(() => {})
+  .then(() => { if (window.Chat && Sync.online()) Chat.start(); if (tab === 'chat') renderChat(true); });
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});

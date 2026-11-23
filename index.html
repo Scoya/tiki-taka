@@ -406,6 +406,7 @@ div.cref.gone{display:block;color:var(--sub);font-size:13px}
 
 <input type="file" id="photo-input" accept="image/*" multiple hidden>
 <input type="file" id="chat-photo-input" accept="image/*" multiple hidden>
+<input type="file" id="chat-camera-input" accept="image/*" capture="environment" hidden>
 <input type="file" id="import-file" accept="application/json,.json" hidden>
 <div class="toast" id="toast"></div>
 
@@ -1422,6 +1423,7 @@ document.addEventListener('click', ev => {
     case 'chat-plus': chatPlusMenu(); break;
     case 'chat-bottom': chatToBottom(); break;
     case 'chat-pick-photo': closeSheet(); $('#chat-photo-input').click(); break;
+    case 'chat-pick-camera': closeSheet(); $('#chat-camera-input').click(); break;
     case 'chat-pick-ref': chatRefPicker(el.dataset.kind); break;
     case 'chat-send-ref': chatSendRef(el.dataset.kind, id); break;
     case 'chat-openref': if (!el.closest('#sheet') && Date.now() - chatMenuOpenedAt < 600) break; chatOpenRef(id); break;
@@ -1627,6 +1629,7 @@ document.addEventListener('change', ev => {
       if (!ta.value.trim()) ta.value = Array.from(document.querySelectorAll('#citems input[type=text]')).map(i => i.value.trim()).filter(Boolean).join('\n');
     }
   }
+  if (t.id === 'chat-camera-input') { const files = t.files; if (files && files.length) chatSendPhotos(files).finally(() => { t.value = ''; }); }
   if (t.id === 'chat-photo-input') { const files = t.files; if (files && files.length) chatSendPhotos(files).finally(() => { t.value = ''; }); }
   if (t.id === 'photo-input') { const files = t.files; if (files && files.length) addPhotos(files, selDate).finally(() => { t.value = ''; }); }
   if (t.id === 'import-file') { const f = t.files && t.files[0]; t.value = ''; if (f) importData(f); }
@@ -1855,7 +1858,8 @@ function chatMsgMenu(id) {
 /* ＋ 메뉴: 사진 / 일정 / 메모 / 디데이 공유 */
 function chatPlusMenu() {
   openSheet(`<h3>보내기</h3><div class="card list sheet-list">
-    <button class="row" data-act="chat-pick-photo"><div class="ico">🖼</div><div class="txt"><div class="t">사진</div><div class="s">최대 10장</div></div></button>
+    <button class="row" data-act="chat-pick-camera"><div class="ico">📷</div><div class="txt"><div class="t">카메라</div><div class="s">바로 찍어서 보내기</div></div></button>
+    <button class="row" data-act="chat-pick-photo"><div class="ico">🖼</div><div class="txt"><div class="t">앨범</div><div class="s">최대 10장</div></div></button>
     <button class="row" data-act="chat-pick-ref" data-kind="event"><div class="ico">${HEART}</div><div class="txt"><div class="t">일정 공유</div></div></button>
     <button class="row" data-act="chat-pick-ref" data-kind="memo"><div class="ico">📝</div><div class="txt"><div class="t">메모 공유</div></div></button>
     <button class="row" data-act="chat-pick-ref" data-kind="dday"><div class="ico">📌</div><div class="txt"><div class="t">디데이 공유</div></div></button>

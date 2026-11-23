@@ -1,5 +1,5 @@
 // 앱을 수정해서 올릴 때마다 이 버전 이름을 바꿔 주세요 (예: couple-v6)
-const CACHE = 'couple-v9';
+const CACHE = 'couple-v10';
 const ASSETS = [
   './',
   './index.html',
